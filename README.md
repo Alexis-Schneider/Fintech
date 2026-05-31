@@ -1,7 +1,7 @@
 # Credit Card Customer Churn Prediction
 
 **FinTech — Final Assignment, Politecnico di Milano**
-Random Forest vs. Multi-Layer Perceptron on the BankChurners dataset, with a predictor-vs-proactive feature split, RFECV feature selection, probability calibration, and cost-sensitive threshold tuning.
+
 
 ---
 
