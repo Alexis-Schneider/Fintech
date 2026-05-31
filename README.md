@@ -2,7 +2,6 @@
 
 **FinTech — Final Assignment, Politecnico di Milano**
 
-
 ---
 
 ## 1. Problem
@@ -31,6 +30,10 @@ The headline tension this project resolves: the most predictive features in the 
 - On PROACTIVE, **RF and MLP are statistically indistinguishable** (95% bootstrap CIs overlap almost entirely). The *configuration* choice matters about an order of magnitude more than the *model-family* choice.
 - **Feature selection (21 → 10)** slightly *improves* both models (RF 0.5625 → 0.5811, MLP 0.5671 → 0.5838).
 - **Recommended production model:** calibrated reduced RF (`RF_PRO_Reduced_Calibrated`), with the operating threshold read off the cost-sensitivity table rather than fixed at the F2 optimum.
+
+![ROC and Precision-Recall curves, FULL vs PROACTIVE](figures/01_roc_pr_full_vs_proactive.png)
+
+*ROC and Precision-Recall curves for both models under both configurations. Top row ROC, bottom row PR; left column FULL, right column PROACTIVE. The FULL panels are near-perfect; the PROACTIVE panels show the harder, deployable problem where RF and MLP nearly coincide.*
 
 ---
 
@@ -84,7 +87,15 @@ The reduced models match or slightly beat the full-PROACTIVE models with half th
 | RF PROACTIVE | 0.5625 | **0.5811** |
 | MLP PROACTIVE | 0.5671 | **0.5838** |
 
-**Top churn drivers** (consistent across SHAP and MLP permutation importance): `Total_Revolving_Bal` (low balance → disengaging), `Contacts_Count_12_mon` (frequent service contacts → dissatisfaction), `Total_Relationship_Count` (single-product customers leave more easily).
+![RFECV with the 1-sigma parsimony rule](figures/02_rfecv_1sigma.png)
+
+*RFECV curve on the PROACTIVE config. The CV AP plateaus from ~k=10 onward; the 1-sigma rule (dashed line) selects k=10, the smallest subset statistically indistinguishable from the k=15 peak.*
+
+**Top churn drivers.** SHAP on the RF ranks `Total_Revolving_Bal`, `Months_Inactive_12_mon`, `Total_Relationship_Count` and `Contacts_Count_12_mon` as the dominant signals; the MLP permutation importance agrees on the same cluster. Reading the directions: low revolving balance pushes toward churn (the customer has stopped carrying a balance), more inactive months and more service contacts both push toward churn, and a low relationship count (single-product customers) leaves more easily.
+
+![SHAP summary plot](figures/03_shap_summary.png)
+
+*SHAP summary for the tuned PROACTIVE RF. Each point is a customer; colour is the feature value, horizontal position is the push toward (right) or away from (left) churn.*
 
 ---
 
@@ -103,6 +114,10 @@ Random Forests push probabilities toward 0 and 1, so the raw score is a poor pro
 
 The F2-optimal threshold (τ ≈ 0.098) catches **280 of 325** test churners (recall 0.86) but fires 884 alerts — the recall-aggressive extreme. The production operating point should be picked from this table given the bank's real cost ratio.
 
+![Expected cost vs threshold](figures/04_expected_cost.png)
+
+*Total expected cost as a function of the decision threshold, for three FN:FP ratios. The cost-minimizing threshold shifts left as missing a churner becomes more expensive; the F2-tuned τ (dashed) sits at the recall-aggressive end.*
+
 ---
 
 ## 7. Repository structure
@@ -112,6 +127,11 @@ The F2-optimal threshold (τ ≈ 0.098) catches **280 of 325** test churners (re
 ├── Fintech_projet.ipynb      # main notebook (EDA → models → selection → calibration → cost analysis)
 ├── Dataset1.xlsx             # BankChurners dataset (not redistributed if license-restricted)
 ├── README.md                 # this file
+├── figures/                  # figures used in this README
+│   ├── 01_roc_pr_full_vs_proactive.png
+│   ├── 02_rfecv_1sigma.png
+│   ├── 03_shap_summary.png
+│   └── 04_expected_cost.png
 └── presentation.pptx         # slide deck framing problem, approach, results, insights
 ```
 
@@ -145,7 +165,18 @@ Then place `Dataset1.xlsx` next to the notebook and run all cells top to bottom:
 jupyter notebook Fintech_projet.ipynb
 ```
 
-Runtime is a few minutes on CPU. A fixed seed (`SEED = 42`) is set for NumPy and TensorFlow; the Random Forest results are deterministic, while the MLP carries minor run-to-run variance (the figures in Section 9 reflect the committed run).
+Runtime is a few minutes on CPU. A fixed seed (`SEED = 42`) is set for NumPy and TensorFlow; the Random Forest results are deterministic, while the MLP carries minor run-to-run variance (the figures in this README reflect the committed run).
+
+**Regenerating the figures.** The four README figures are produced by the notebook itself. To refresh them, add a `plt.savefig(...)` call right before the corresponding `plt.show()`:
+
+```python
+plt.savefig('figures/01_roc_pr_full_vs_proactive.png', dpi=150, bbox_inches='tight')  # cell 5.2
+plt.savefig('figures/02_rfecv_1sigma.png',             dpi=150, bbox_inches='tight')  # cell 6.2
+plt.savefig('figures/03_shap_summary.png',             dpi=150, bbox_inches='tight')  # cell 6.3
+plt.savefig('figures/04_expected_cost.png',            dpi=150, bbox_inches='tight')  # cell 8.4
+```
+
+Regenerating from your own run keeps the MLP curve in figure 1 exactly consistent with the AP values reported in the notebook text.
 
 ---
 
@@ -161,5 +192,4 @@ Runtime is a few minutes on CPU. A fixed seed (`SEED = 42`) is set for NumPy and
 
 ## 10. Author
 
-Alexis — MSc Engineering, exchange semester at Politecnico di Milano.
-Course: FinTech (Prof. Marazzina).
+Alexis Schneider
