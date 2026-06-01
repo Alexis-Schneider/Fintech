@@ -132,7 +132,7 @@ The F2-optimal threshold (τ ≈ 0.098) catches **280 of 325** test churners (re
 │   ├── 02_rfecv_1sigma.png
 │   ├── 03_shap_summary.png
 │   └── 04_expected_cost.png
-└── presentation.pptx         # slide deck framing problem, approach, results, insights
+└── presentation_fintech         # slide deck framing problem, approach, results, insights
 ```
 
 The notebook is organized in numbered sections:
